@@ -64,7 +64,7 @@ interface Ethernet 2
   no shutdown
 exit
 interface loopback 1
-  ip address 10.1.0.1/32
+  ip address 10.2.0.1/32
 exit
 ```
 
@@ -86,7 +86,7 @@ interface Ethernet 2
   no shutdown
 exit
 interface loopback 1
-  ip address 10.1.0.2/32
+  ip address 10.2.0.2/32
 exit
 ```
 
@@ -108,7 +108,7 @@ interface Ethernet 2
   no shutdown
 exit
 interface loopback 1
-  ip address 10.1.0.3/32
+  ip address 10.2.0.3/32
 exit
 ```
 
