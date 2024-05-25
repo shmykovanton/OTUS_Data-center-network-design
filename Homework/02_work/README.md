@@ -64,6 +64,9 @@ interface Ethernet1
   ip address 10.4.1.1/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf message-digest-key
+  ip ospf message-digest-key 23 sha256 auth123
+  ip ospf priority 0
 exit
 interface Ethernet 2
   description to-spine-2
@@ -71,6 +74,9 @@ interface Ethernet 2
   ip address 10.4.2.1/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf message-digest-key
+  ip ospf message-digest-key 23 sha256 auth123
+  ip ospf priority 0
 exit
 interface loopback 1
   ip address 10.2.0.1/32
@@ -99,6 +105,9 @@ interface Ethernet 1
   ip address 10.4.1.3/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf message-digest-key
+  ip ospf message-digest-key 23 sha256 auth123
+  ip ospf priority 0
 exit
 interface Ethernet 2
   description to-spine-2
@@ -106,6 +115,9 @@ interface Ethernet 2
   ip address 10.4.2.3/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf message-digest-key
+  ip ospf message-digest-key 23 sha256 auth123
+  ip ospf priority 0
 exit
 interface loopback 1
   ip address 10.2.0.2/32
@@ -134,6 +146,9 @@ interface Ethernet 1
   ip address 10.4.1.5/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf message-digest-key
+  ip ospf message-digest-key 23 sha256 auth123
+  ip ospf priority 0
 exit
 interface Ethernet 2
   description to-spine-2
@@ -141,6 +156,9 @@ interface Ethernet 2
   ip address 10.4.2.5/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf message-digest-key
+  ip ospf message-digest-key 23 sha256 auth123
+  ip ospf priority 0
 exit
 interface loopback 1
   ip address 10.2.0.3/32
@@ -170,6 +188,8 @@ interface Ethernet 1
   ip address 10.4.1.0/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf authentication message-digest
+  ip ospf message-digest-key 23 sha256 auth123
 exit
 interface Ethernet 2
   description to-leaf-2
@@ -177,6 +197,8 @@ interface Ethernet 2
   ip address 10.4.1.2/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf authentication message-digest
+  ip ospf message-digest-key 23 sha256 auth123
 exit
 interface Ethernet 3
   description to-leaf-3
@@ -184,6 +206,8 @@ interface Ethernet 3
   ip address 10.4.1.4/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf authentication message-digest
+  ip ospf message-digest-key 23 sha256 auth123
 exit
 interface loopback 1
   ip address 10.1.1.0/32
@@ -212,6 +236,8 @@ interface Ethernet 1
   ip address 10.4.2.0/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf authentication message-digest
+  ip ospf message-digest-key 23 sha256 auth123
 exit
 interface Ethernet 2
   description to-leaf-2
@@ -219,6 +245,8 @@ interface Ethernet 2
   ip address 10.4.2.2/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf authentication message-digest
+  ip ospf message-digest-key 23 sha256 auth123
 exit
 interface Ethernet 3
   description to-leaf-3
@@ -226,11 +254,232 @@ interface Ethernet 3
   ip address 10.4.2.4/31
   no shutdown
   bfd interval 100 min-rx 100 multiplier 3
+  ip ospf authentication message-digest
+  ip ospf message-digest-key 23 sha256 auth123
 exit
 interface loopback 1
   ip address 10.1.2.0/32
 exit
 ```
+
+### Проверка OSPF
+
+- #### leaf-1
+
+~~~
+leaf-1#show ip ospf neighbor
+Neighbor ID     Instance VRF      Pri State                  Dead Time   Address
+     Interface
+10.1.1.0        1000     default  1   FULL/DR                00:00:37    10.4.1.0   Ethernet1
+10.1.2.0        1000     default  1   FULL/DR                00:00:34    10.4.2.0   Ethernet2
+~~~
+
+- #### leaf-2
+
+~~~
+leaf-2#show ip ospf neighbor
+Neighbor ID     Instance VRF      Pri State                  Dead Time   Address
+     Interface
+10.1.1.0        1000     default  1   FULL/DR                00:00:30    10.4.1.2   Ethernet1
+10.1.2.0        1000     default  1   FULL/DR                00:00:37    10.4.2.2   Ethernet2
+~~~
+
+- #### leaf-3
+
+~~~
+leaf-3#show ip ospf neighbor
+Neighbor ID     Instance VRF      Pri State                  Dead Time   Address         Interface
+10.1.1.0        1000     default  1   FULL/DR                00:00:36    10.4.1.4        Ethernet1
+10.1.2.0        1000     default  1   FULL/DR                00:00:35    10.4.2.4        Ethernet2
+~~~
+
+- #### spine-1
+
+~~~
+spine-1#show ip ospf neighbor
+Neighbor ID     Instance VRF      Pri State                  Dead Time   Address         Interface
+10.2.0.1        1000     default  0   FULL/DROTHER           00:00:38    10.4.1.1        Ethernet1
+10.2.0.2        1000     default  0   FULL/DROTHER           00:00:35    10.4.1.3        Ethernet2
+10.2.0.3        1000     default  0   FULL/DROTHER           00:00:30    10.4.1.5        Ethernet3
+~~~
+
+- #### spine-2
+
+~~~
+spine-2#show ip ospf neighbor
+Neighbor ID     Instance VRF      Pri State                  Dead Time   Address         Interface
+10.2.0.1        1000     default  0   FULL/DROTHER           00:00:34    10.4.2.1        Ethernet1
+10.2.0.2        1000     default  0   FULL/DROTHER           00:00:30    10.4.2.3        Ethernet2
+10.2.0.3        1000     default  0   FULL/DROTHER           00:00:34    10.4.2.5        Ethernet3
+~~~
+
+
+### Проверка таблиц маршрутизации
+
+- #### leaf-1
+
+~~~
+leaf-1#show ip route
+
+VRF: default
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ O        10.1.1.0/32 [110/20] via 10.4.1.0, Ethernet1
+ O        10.1.2.0/32 [110/20] via 10.4.2.0, Ethernet2
+ C        10.2.0.1/32 is directly connected, Loopback1
+ O        10.2.0.2/32 [110/30] via 10.4.1.0, Ethernet1
+                               via 10.4.2.0, Ethernet2
+ O        10.2.0.3/32 [110/30] via 10.4.1.0, Ethernet1
+                               via 10.4.2.0, Ethernet2
+ C        10.4.1.0/31 is directly connected, Ethernet1
+ O        10.4.1.2/31 [110/20] via 10.4.1.0, Ethernet1
+ O        10.4.1.4/31 [110/20] via 10.4.1.0, Ethernet1
+ C        10.4.2.0/31 is directly connected, Ethernet2
+ O        10.4.2.2/31 [110/20] via 10.4.2.0, Ethernet2
+ O        10.4.2.4/31 [110/20] via 10.4.2.0, Ethernet2
+~~~
+
+- #### leaf-2
+
+~~~
+leaf-2#show ip route
+
+VRF: default
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ O        10.1.1.0/32 [110/20] via 10.4.1.2, Ethernet1
+ O        10.1.2.0/32 [110/20] via 10.4.2.2, Ethernet2
+ O        10.2.0.1/32 [110/30] via 10.4.1.2, Ethernet1
+                               via 10.4.2.2, Ethernet2
+ C        10.2.0.2/32 is directly connected, Loopback1
+ O        10.2.0.3/32 [110/30] via 10.4.1.2, Ethernet1
+                               via 10.4.2.2, Ethernet2
+ O        10.4.1.0/31 [110/20] via 10.4.1.2, Ethernet1
+ C        10.4.1.2/31 is directly connected, Ethernet1
+ O        10.4.1.4/31 [110/20] via 10.4.1.2, Ethernet1
+ O        10.4.2.0/31 [110/20] via 10.4.2.2, Ethernet2
+ C        10.4.2.2/31 is directly connected, Ethernet2
+ O        10.4.2.4/31 [110/20] via 10.4.2.2, Ethernet2
+~~~
+
+- #### leaf-3
+
+~~~
+leaf-3#show ip route
+
+VRF: default
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ O        10.1.1.0/32 [110/20] via 10.4.1.4, Ethernet1
+ O        10.1.2.0/32 [110/20] via 10.4.2.4, Ethernet2
+ O        10.2.0.1/32 [110/30] via 10.4.1.4, Ethernet1
+                               via 10.4.2.4, Ethernet2
+ O        10.2.0.2/32 [110/30] via 10.4.1.4, Ethernet1
+                               via 10.4.2.4, Ethernet2
+ C        10.2.0.3/32 is directly connected, Loopback1
+ O        10.4.1.0/31 [110/20] via 10.4.1.4, Ethernet1
+ O        10.4.1.2/31 [110/20] via 10.4.1.4, Ethernet1
+ C        10.4.1.4/31 is directly connected, Ethernet1
+ O        10.4.2.0/31 [110/20] via 10.4.2.4, Ethernet2
+ O        10.4.2.2/31 [110/20] via 10.4.2.4, Ethernet2
+ C        10.4.2.4/31 is directly connected, Ethernet2
+~~~
+
+- #### spine-1
+
+~~~
+spine-1#show ip route
+
+VRF: default
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ C        10.1.1.0/32 is directly connected, Loopback1
+ O        10.1.2.0/32 [110/30] via 10.4.1.1, Ethernet1
+                               via 10.4.1.3, Ethernet2
+                               via 10.4.1.5, Ethernet3
+ O        10.2.0.1/32 [110/20] via 10.4.1.1, Ethernet1
+ O        10.2.0.2/32 [110/20] via 10.4.1.3, Ethernet2
+ O        10.2.0.3/32 [110/20] via 10.4.1.5, Ethernet3
+ C        10.4.1.0/31 is directly connected, Ethernet1
+ C        10.4.1.2/31 is directly connected, Ethernet2
+ C        10.4.1.4/31 is directly connected, Ethernet3
+ O        10.4.2.0/31 [110/20] via 10.4.1.1, Ethernet1
+ O        10.4.2.2/31 [110/20] via 10.4.1.3, Ethernet2
+ O        10.4.2.4/31 [110/20] via 10.4.1.5, Ethernet3
+~~~
+
+- #### spine-2
+
+~~~
+spine-2#show ip route
+
+VRF: default
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ O        10.1.1.0/32 [110/30] via 10.4.2.1, Ethernet1
+                               via 10.4.2.3, Ethernet2
+                               via 10.4.2.5, Ethernet3
+ C        10.1.2.0/32 is directly connected, Loopback1
+ O        10.2.0.1/32 [110/20] via 10.4.2.1, Ethernet1
+ O        10.2.0.2/32 [110/20] via 10.4.2.3, Ethernet2
+ O        10.2.0.3/32 [110/20] via 10.4.2.5, Ethernet3
+ O        10.4.1.0/31 [110/20] via 10.4.2.1, Ethernet1
+ O        10.4.1.2/31 [110/20] via 10.4.2.3, Ethernet2
+ O        10.4.1.4/31 [110/20] via 10.4.2.5, Ethernet3
+ C        10.4.2.0/31 is directly connected, Ethernet1
+ C        10.4.2.2/31 is directly connected, Ethernet2
+ C        10.4.2.4/31 is directly connected, Ethernet3
+~~~
 
 ### Проверка доступности
 
