@@ -79,6 +79,7 @@ interface Ethernet1
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface Ethernet 2
   description to-spine-2
@@ -90,6 +91,7 @@ interface Ethernet 2
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface loopback 1
   ip address 10.2.0.1/32
@@ -123,6 +125,7 @@ interface Ethernet 1
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface Ethernet 2
   description to-spine-2
@@ -134,6 +137,7 @@ interface Ethernet 2
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface loopback 1
   ip address 10.2.0.2/32
@@ -167,6 +171,7 @@ interface Ethernet 1
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface Ethernet 2
   description to-spine-2
@@ -178,6 +183,7 @@ interface Ethernet 2
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface loopback 1
   ip address 10.2.0.3/32
@@ -211,6 +217,7 @@ interface Ethernet 1
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface Ethernet 2
   description to-leaf-2
@@ -222,6 +229,7 @@ interface Ethernet 2
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface Ethernet 3
   description to-leaf-3
@@ -233,6 +241,7 @@ interface Ethernet 3
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface loopback 1
   ip address 10.1.1.0/32
@@ -265,6 +274,7 @@ interface Ethernet 1
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface Ethernet 2
   description to-leaf-2
@@ -276,6 +286,7 @@ interface Ethernet 2
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface Ethernet 3
   description to-leaf-3
@@ -287,6 +298,7 @@ interface Ethernet 3
   isis bfd
   isis hello-interval 3
   isis hello-multiplier 3
+  isis network point-to-point
 exit
 interface loopback 1
   ip address 10.1.2.0/32
