@@ -108,6 +108,7 @@ interface Ethernet 1
   ip ospf message-digest-key
   ip ospf message-digest-key 23 sha256 auth123
   ip ospf priority 0
+  ip ospf network point-to-point
 exit
 interface Ethernet 2
   description to-spine-2
@@ -118,6 +119,7 @@ interface Ethernet 2
   ip ospf message-digest-key
   ip ospf message-digest-key 23 sha256 auth123
   ip ospf priority 0
+  ip ospf network point-to-point
 exit
 interface loopback 1
   ip address 10.2.0.2/32
@@ -149,6 +151,7 @@ interface Ethernet 1
   ip ospf message-digest-key
   ip ospf message-digest-key 23 sha256 auth123
   ip ospf priority 0
+  ip ospf network point-to-point
 exit
 interface Ethernet 2
   description to-spine-2
@@ -159,6 +162,7 @@ interface Ethernet 2
   ip ospf message-digest-key
   ip ospf message-digest-key 23 sha256 auth123
   ip ospf priority 0
+  ip ospf network point-to-point
 exit
 interface loopback 1
   ip address 10.2.0.3/32
@@ -190,6 +194,7 @@ interface Ethernet 1
   bfd interval 100 min-rx 100 multiplier 3
   ip ospf authentication message-digest
   ip ospf message-digest-key 23 sha256 auth123
+  ip ospf network point-to-point
 exit
 interface Ethernet 2
   description to-leaf-2
@@ -199,6 +204,7 @@ interface Ethernet 2
   bfd interval 100 min-rx 100 multiplier 3
   ip ospf authentication message-digest
   ip ospf message-digest-key 23 sha256 auth123
+  ip ospf network point-to-point
 exit
 interface Ethernet 3
   description to-leaf-3
@@ -208,6 +214,7 @@ interface Ethernet 3
   bfd interval 100 min-rx 100 multiplier 3
   ip ospf authentication message-digest
   ip ospf message-digest-key 23 sha256 auth123
+  ip ospf network point-to-point
 exit
 interface loopback 1
   ip address 10.1.1.0/32
@@ -238,6 +245,7 @@ interface Ethernet 1
   bfd interval 100 min-rx 100 multiplier 3
   ip ospf authentication message-digest
   ip ospf message-digest-key 23 sha256 auth123
+  ip ospf network point-to-point
 exit
 interface Ethernet 2
   description to-leaf-2
@@ -247,6 +255,7 @@ interface Ethernet 2
   bfd interval 100 min-rx 100 multiplier 3
   ip ospf authentication message-digest
   ip ospf message-digest-key 23 sha256 auth123
+  ip ospf network point-to-point
 exit
 interface Ethernet 3
   description to-leaf-3
@@ -256,6 +265,7 @@ interface Ethernet 3
   bfd interval 100 min-rx 100 multiplier 3
   ip ospf authentication message-digest
   ip ospf message-digest-key 23 sha256 auth123
+  ip ospf network point-to-point
 exit
 interface loopback 1
   ip address 10.1.2.0/32
