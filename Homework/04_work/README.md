@@ -61,10 +61,12 @@ ip routing
 
 router bgp 4200010001
    router-id 10.2.0.1
+   neighbor SPINE peer group
+   neighbor SPINE bfd
    neighbor 10.4.1.0 remote-as 4200000001
-   neighbor 10.4.1.0 bfd
+   neighbor 10.4.1.0 peer group SPINE
    neighbor 10.4.2.0 remote-as 4200000002
-   neighbor 10.4.2.0 bfd
+   neighbor 10.4.2.0 peer group SPINE
    redistribute connected
    timers bgp 3 9
    bgp log-neighbor-changes
@@ -99,10 +101,12 @@ ip routing
 
 router bgp 4200010002
    router-id 10.2.0.2
+   neighbor SPINE peer group
+   neighbor SPINE bfd
    neighbor 10.4.1.2 remote-as 4200000001
-   neighbor 10.4.1.2 bfd
+   neighbor 10.4.1.2 peer group SPINE
    neighbor 10.4.2.2 remote-as 4200000002
-   neighbor 10.4.2.2 bfd
+   neighbor 10.4.2.2 peer group SPINE
    redistribute connected
    timers bgp 3 9
    bgp log-neighbor-changes
@@ -137,10 +141,12 @@ ip routing
 
 router bgp 4200010003
    router-id 10.2.0.3
+   neighbor SPINE peer group
+   neighbor SPINE bfd
    neighbor 10.4.1.4 remote-as 4200000001
-   neighbor 10.4.1.4 bfd
+   neighbor 10.4.1.4 peer group SPINE
    neighbor 10.4.2.4 remote-as 4200000002
-   neighbor 10.4.2.4 bfd
+   neighbor 10.4.2.4 peer group SPINE
    redistribute connected
    timers bgp 3 9
    bgp log-neighbor-changes
@@ -175,16 +181,17 @@ ip routing
 
 router bgp 4200000001
    router-id 10.1.1.0
+   neighbor LEAF peer group
+   neighbor LEAF bfd
    neighbor 10.4.1.1 remote-as 4200010001
-   neighbor 10.4.1.1 bfd
+   neighbor 10.4.1.1 peer group LEAF
    neighbor 10.4.1.3 remote-as 4200010002
-   neighbor 10.4.1.3 bfd
+   neighbor 10.4.1.3 peer group LEAF
    neighbor 10.4.1.5 remote-as 4200010003
-   neighbor 10.4.1.5 bfd
+   neighbor 10.4.1.5 peer group LEAF
    redistribute connected
    timers bgp 3 9
    bgp log-neighbor-changes
-   maximum-paths 128
 exit
 
 interface Ethernet 1
@@ -221,16 +228,17 @@ ip routing
 
 router bgp 4200000002
    router-id 10.1.2.0
+   neighbor LEAF peer group
+   neighbor LEAF bfd
    neighbor 10.4.2.1 remote-as 4200010001
-   neighbor 10.4.2.1 bfd
+   neighbor 10.4.2.1 peer group LEAF
    neighbor 10.4.2.3 remote-as 4200010002
-   neighbor 10.4.2.3 bfd
+   neighbor 10.4.2.3 peer group LEAF
    neighbor 10.4.2.5 remote-as 4200010003
-   neighbor 10.4.2.5 bfd
+   neighbor 10.4.2.5 peer group LEAF
    redistribute connected
    timers bgp 3 9
    bgp log-neighbor-changes
-   maximum-paths 128
 exit
 
 interface Ethernet 1
