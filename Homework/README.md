@@ -9,3 +9,5 @@
 [04 Underlay. eBGP](04_work)
 
 [05 VxLAN. L2 VNI](05_work)
+
+[06 VxLAN. L3 VNI](06_work)
