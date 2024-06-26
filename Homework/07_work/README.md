@@ -30,9 +30,9 @@
 |  leaf-2-1  |  Eth1     | 10.4.1.5/31  | to-spine-1   |
 |  leaf-2-1  |  Eth2     | 10.4.2.5/31  | to-spine-2   |
 |            |           |              |              |
-|  leaf-2-   | Loopback1 | 10.2.0.4/32  |              |
-|  leaf-2-   |  Eth1     | 10.4.1.7/31  | to-spine-1   |
-|  leaf-2-   |  Eth2     | 10.4.2.7/31  | to-spine-2   |
+|  leaf-2-2  | Loopback1 | 10.2.0.4/32  |              |
+|  leaf-2-2  |  Eth1     | 10.4.1.7/31  | to-spine-1   |
+|  leaf-2-2  |  Eth2     | 10.4.2.7/31  | to-spine-2   |
 |            |           |              |              |
 |  spine-1   | Loopback1 | 10.1.1.0/32  |              |
 |  spine-1   |  Eth1     | 10.4.1.0/31  |  to-leaf-1-1 |
