@@ -4,9 +4,9 @@
 
 ### Задачи:
 
-- Анонсируете суммарные префиксы клиентов в Overlay сеть
-- Настроите маршрутизацию между клиентами через суммарный префикс
-- Зафиксируете в документации - план работы, адресное пространство, схему сети, настройки сетевого оборудования
+- Настройте клиентов в разных VRF;
+- Подключите внешний роутер к пограничному leaf;
+- Настройте связанность между VRF через внешний роутер;
 
 ## Выполнение:
 
@@ -16,33 +16,35 @@
 
 ### Таблица адресов
 
-| hostname          | interface |   IP/MASK    | Description        |
-| :---------------: | :-------: | :----------: | :----------------: |
-|  leaf-1           | Loopback1 | 10.2.0.1/32  |                    |
-|  leaf-1           |  Eth1     | 10.4.1.1/31  | to-spine-1         |
-|  leaf-1           |  Eth2     | 10.4.2.1/31  | to-spine-2         |
-|                   |           |              |                    |
-|  leaf-2           | Loopback1 | 10.2.0.2/32  |                    |
-|  leaf-2           |  Eth1     | 10.4.1.3/31  | to-spine-1         |
-|  leaf-2           |  Eth2     | 10.4.2.3/31  | to-spine-2         |
-|                   |           |              |                    |
-|  leaf-3           | Loopback1 | 10.2.0.3/32  |                    |
-|  leaf-3           |  Eth1     | 10.4.1.5/31  | to-spine-1         |
-|  leaf-3           |  Eth2     | 10.4.2.5/31  | to-spine-2         |
-|  leaf-3           |  Eth5     | 10.4.3.0/31  | to-external-router |
-|                   |           |              |                    |
-|  external-router  | Loopback1 | 10.2.0.4/32  |                    |
-|  leaf-3           |  Eth1     | 10.4.3.1/31  | to-leaf-3          |
-|                   |           |              |                    |
-|  spine-1          | Loopback1 | 10.1.1.0/32  |                    |
-|  spine-1          |  Eth1     | 10.4.1.0/31  | to-leaf-1          |
-|  spine-1          |  Eth2     | 10.4.1.2/31  | to-leaf-2          |
-|  spine-1          |  Eth3     | 10.4.1.4/31  | to-leaf-3          |
-|                   |           |              |                    |
-|  spine-2          | Loopback1 | 10.1.2.0/32  |                    |
-|  spine-2          |  Eth1     | 10.4.2.0/31  | to-leaf-1          |
-|  spine-2          |  Eth2     | 10.4.2.2/31  | to-leaf-2          |
-|  spine-2          |  Eth3     | 10.4.2.2/31  | to-leaf-3          |
+| hostname          | interface |   IP/MASK    | Description                  |
+| :---------------: | :-------: | :----------: | :--------------------------: |
+|  leaf-1           | Loopback1 | 10.2.0.1/32  |                              |
+|  leaf-1           |  Eth1     | 10.4.1.1/31  | to-spine-1                   |
+|  leaf-1           |  Eth2     | 10.4.2.1/31  | to-spine-2                   |
+|                   |           |              |                              |
+|  leaf-2           | Loopback1 | 10.2.0.2/32  |                              |
+|  leaf-2           |  Eth1     | 10.4.1.3/31  | to-spine-1                   |
+|  leaf-2           |  Eth2     | 10.4.2.3/31  | to-spine-2                   |
+|                   |           |              |                              |
+|  leaf-3           | Loopback1 | 10.2.0.3/32  |                              |
+|  leaf-3           |  Eth1     | 10.4.1.5/31  | to-spine-1                   |
+|  leaf-3           |  Eth2     | 10.4.2.5/31  | to-spine-2                   |
+|  leaf-3           |  Eth5     | 10.4.3.0/31  | to-external-router-Vrf-red   |
+|  leaf-3           |  Eth6     | 10.4.3.2/31  | to-external-router-Vrf-green |
+|                   |           |              |                              |
+|  external-router  | Loopback1 | 10.2.0.4/32  |                              |
+|  external-router  |  Eth1     | 10.4.3.1/31  | to-leaf-3-Vrf-red            |
+|  external-router  |  Eth2     | 10.4.3.3/31  | to-leaf-3-Vrf-green          |
+|                   |           |              |                              |
+|  spine-1          | Loopback1 | 10.1.1.0/32  |                              |
+|  spine-1          |  Eth1     | 10.4.1.0/31  | to-leaf-1                    |
+|  spine-1          |  Eth2     | 10.4.1.2/31  | to-leaf-2                    |
+|  spine-1          |  Eth3     | 10.4.1.4/31  | to-leaf-3                    |
+|                   |           |              |                              |
+|  spine-2          | Loopback1 | 10.1.2.0/32  |                              |
+|  spine-2          |  Eth1     | 10.4.2.0/31  | to-leaf-1                    |
+|  spine-2          |  Eth2     | 10.4.2.2/31  | to-leaf-2                    |
+|  spine-2          |  Eth3     | 10.4.2.2/31  | to-leaf-3                    |
 
 
 ### Таблица ASN
@@ -59,20 +61,23 @@
 
 ### Taблица адресов клиентов
 
-| name       |     MAC           | Address        | VLAN | VNI   | Attached to |
-| :--------: | :---------------: | :------------: | :--: | :---: | :---------: |
-|  client-1  | 50:14:00:06:00:00 | 192.168.10.1/24|   10 | 10010 | leaf-1      |
-|  client-2  | 50:14:00:07:00:00 | 192.168.10.2/24|   10 | 10010 | leaf-1      |
-|  client-3  | 50:14:00:08:00:00 | 192.168.20.1/24|   20 | 10020 | leaf-2      |
-|  client-4  | 50:14:00:09:00:00 | 192.168.20.2/24|   20 | 10020 | leaf-2      |
+| name       |     MAC           | Address        | VLAN | VNI   | Attached to | VRF       |
+| :--------: | :---------------: | :------------: | :--: | :---: | :---------: | :-------: |
+|  client-1  | 50:14:00:06:00:00 | 192.168.10.1/24|   10 | 10010 | leaf-1      | Vrf-red   |
+|  client-2  | 50:14:00:07:00:00 | 192.168.10.2/24|   20 | 10020 | leaf-1      | Vrf-green |
+|  client-3  | 50:14:00:08:00:00 | 192.168.20.1/24|   30 | 10030 | leaf-2      | Vrf-red   |
+|  client-4  | 50:14:00:09:00:00 | 192.168.20.2/24|   40 | 10040 | leaf-2      | Vrf-green |
 
 ### Таблица VLAN VNI
 
-| VLAN | VNI   | Type        |
-| :--: | :---: | :---------: |
-| 1000 | 10000 | L3VNI       |
-|   10 | 10010 | L2VNI       |
-|   20 | 10020 | L2VNI       |
+| VLAN | VNI   | Type        | VRF       |
+| :--: | :---: | :---------: | :-------: |
+| 1000 | 10000 | L3VNI       | Vrf-red   |
+| 2000 | 10000 | L3VNI       | Vrf-green |
+|   10 | 10010 | L2VNI       | Vrf-red   |
+|   20 | 10020 | L2VNI       | Vrf-green |
+|   30 | 10020 | L2VNI       | Vrf-red   |
+|   40 | 10020 | L2VNI       | Vrf-green |
 
 ### Адреса виртуальных шлюзов
 
@@ -80,6 +85,8 @@
 | :--: | :---: | :---------------: | :---------------: |
 |   10 | 10010 | 192.168.10.254/24 | 00:00:00:01:01:01 |
 |   20 | 10020 | 192.168.20.254/24 | 00:00:00:01:01:01 |
+|   30 | 10020 | 192.168.30.254/24 | 00:00:00:01:01:01 |
+|   40 | 10020 | 192.168.40.254/24 | 00:00:00:01:01:01 |
 
 ### Конфигурация оборудования
 
@@ -93,12 +100,15 @@ service routing protocols model multi-agent
 
 vlan 10
 exit
-vlan 1000
+vlan 20
 exit
 
 vrf instance Vrf-red
 exit
+vrf instance Vrf-green
+exit
 ip routing vrf Vrf-red
+ip routing vrf Vrf-green
 ip virtual-router mac-address 00:00:00:01:01:01
 
 router bgp 4200010001
@@ -121,21 +131,18 @@ router bgp 4200010001
   exit
 
   vlan 10
-    rd 10.2.0.1:10
+    rd 10.2.0.1:10010
     route-target export 4200010001:10010
     redistribute learned
   exit
-
-  vlan 1000
-    rd 10.2.0.1:1000
-    route-target export 4200010001:10000
-    route-target import 4200010002:10000
-    route-target import 4200010003:10000
+  vlan 20
+    rd 10.2.0.1:10020
+    route-target export 4200010001:10020
     redistribute learned
   exit
 
   vrf Vrf-red
-    rd 10.2.0.1:1000
+    rd 10.2.0.1:10000
     redistribute connected
     address-family ipv4
       route-target export evpn 4200010001:10000
@@ -143,9 +150,18 @@ router bgp 4200010001
       route-target import evpn 4200010003:10000
     exit
   exit
+  vrf Vrf-green
+    rd 10.2.0.1:20000
+    redistribute connected
+    address-family ipv4
+      route-target export evpn 4200010001:20000
+      route-target import evpn 4200010002:20000
+      route-target import evpn 4200010003:20000
+    exit
+  exit
 exit
 
-interface Ethernet1
+interface Ethernet 1
   description to-spine-1
   no switchport
   ip address 10.4.1.1/31
@@ -165,7 +181,7 @@ interface Ethernet 5
 exit
 interface Ethernet 6
   description to-client-2
-  switchport access vlan 10
+  switchport access vlan 20
 exit
 interface loopback 1
   ip address 10.2.0.1/32
@@ -174,11 +190,17 @@ interface Vlan 10
   vrf Vrf-red
   ip address virtual 192.168.10.254/24
 exit
+interface Vlan 20
+  vrf Vrf-green
+  ip address virtual 192.168.20.254/24
+exit
 interface Vxlan1
   vxlan udp-port 4789
   vxlan source-interface Loopback1
   vxlan vlan 10 vni 10010
+  vxlan vlan 20 vni 10020
   vxlan vrf Vrf-red vni 10000
+  vxlan vrf Vrf-green vni 20000
 exit
 ```
 
@@ -190,14 +212,17 @@ hostname leaf-2
 ip routing
 service routing protocols model multi-agent
 
-vlan 20
+vlan 30
 exit
-vlan 1000
+vlan 40
 exit
 
 vrf instance Vrf-red
 exit
+vrf instance Vrf-green
+exit
 ip routing vrf Vrf-red
+ip routing vrf Vrf-green
 ip virtual-router mac-address 00:00:00:01:01:01
 
 router bgp 4200010002
@@ -219,22 +244,19 @@ router bgp 4200010002
       neighbor 10.4.2.2 activate
   exit
 
-  vlan 20
-    rd 10.2.0.2:20
-    route-target export 4200010002:10020
+  vlan 30
+    rd 10.2.0.2:10030
+    route-target export 4200010002:10030
     redistribute learned
   exit
-
-  vlan 1000
-    rd 10.2.0.2:1000
-    route-target export 4200010002:10000
-    route-target import 4200010001:10000
-    route-target import 4200010003:10000
+  vlan 40
+    rd 10.2.0.2:10040
+    route-target export 4200010002:10030
     redistribute learned
   exit
 
   vrf Vrf-red
-    rd 10.2.0.2:1000
+    rd 10.2.0.2:10000
     redistribute connected
     address-family ipv4
       route-target export evpn 4200010002:10000
@@ -243,6 +265,15 @@ router bgp 4200010002
     exit
   exit
 
+  vrf Vrf-green
+    rd 10.2.0.2:20000
+    redistribute connected
+    address-family ipv4
+      route-target export evpn 4200010002:20000
+      route-target import evpn 4200010001:20000
+      route-target import evpn 4200010003:20000
+    exit
+  exit
 exit
 
 interface Ethernet 1
@@ -261,26 +292,33 @@ interface Ethernet 2
 exit
 interface Ethernet 5
   description to-client-3
-  switchport access vlan 20
+  switchport access vlan 30
 exit
 interface Ethernet 6
   description to-client-4
-  switchport access vlan 20
+  switchport access vlan 40
 exit
 interface loopback 1
   ip address 10.2.0.2/32
 exit
 
-interface Vlan 20
+interface Vlan 30
   vrf Vrf-red
-  ip address virtual 192.168.20.254/24
+  ip address virtual 192.168.30.254/24
+exit
+
+interface Vlan 40
+  vrf Vrf-green
+  ip address virtual 192.168.40.254/24
 exit
 
 interface Vxlan1
   vxlan udp-port 4789
   vxlan source-interface Loopback1
-  vxlan vlan 20 vni 10020
+  vxlan vlan 30 vni 10030
+  vxlan vlan 40 vni 10040
   vxlan vrf Vrf-red vni 10000
+  vxlan vrf Vrf-green vni 20000
 exit
 ```
 
@@ -292,13 +330,17 @@ hostname leaf-3
 ip routing
 service routing protocols model multi-agent
 
-vlan 1000
+vlan 100
+exit
+vlan 200
 exit
 
 vrf instance Vrf-red
 exit
+vrf instance Vrf-green
+exit
 ip routing vrf Vrf-red
-
+ip routing vrf Vrf-green
 ip prefix-list VXLAN-TO-EXT seq 10 permit 0.0.0.0/0 le 31
 route-map VXLAN-TO-EXT-MAP permit 10
    match ip address prefix-list VXLAN-TO-EXT
@@ -325,7 +367,7 @@ router bgp 4200010003
   exit
 
   vrf Vrf-red
-    rd 10.2.0.3:1000
+    rd 10.2.0.3:10000
     redistribute connected
     neighbor 10.4.3.1 remote-as 4200020001
     neighbor 10.4.3.1 route-map VXLAN-TO-EXT-MAP out
@@ -336,11 +378,26 @@ router bgp 4200010003
       neighbor 10.4.3.1 activate
     exit
   exit
+
+  vrf Vrf-green
+    rd 10.2.0.3:20000
+    redistribute connected
+    neighbor 10.4.3.3 remote-as 4200020001
+    neighbor 10.4.3.3 route-map VXLAN-TO-EXT-MAP out
+    address-family ipv4
+      route-target export evpn 4200010003:20000
+      route-target import evpn 4200010001:20000
+      route-target import evpn 4200010002:20000
+      neighbor 10.4.3.3 activate
+    exit
+  exit
+
 exit
 interface Vxlan1
   vxlan udp-port 4789
   vxlan source-interface Loopback1
   vxlan vrf Vrf-red vni 10000
+  vxlan vrf Vrf-green vni 20000
 exit
 exit
 
@@ -359,10 +416,26 @@ interface Ethernet 2
   bfd interval 100 min-rx 100 multiplier 3
 exit
 interface Ethernet 5
-  description to-external-router
+   switchport trunk native vlan 100
+   switchport trunk allowed vlan 100
+   switchport mode trunk
+exit
+interface Ethernet 6
+   switchport trunk native vlan 200
+   switchport trunk allowed vlan 200
+   switchport mode trunk
+exit
+
+interface Vlan 100
+  description to-leaf-3-Vrf-red
   vrf Vrf-red
-  no switchport
   ip address 10.4.3.0/31
+  no shutdown
+exit
+interface Vlan 200
+  description to-leaf-3-Vrf-green
+  vrf Vrf-green
+  ip address 10.4.3.2/31
   no shutdown
 exit
 interface loopback 1
@@ -377,24 +450,95 @@ hostname external-router
 
 ip routing
 
+vlan 100
+exit
+vlan 200
+exit
+
+vrf instance Vrf-red
+exit
+vrf instance Vrf-green
+exit
+ip routing vrf Vrf-red
+ip routing vrf Vrf-green
+
+ip prefix-list LEAK-VRF-RED seq 10 permit 192.168.10.0/24
+ip prefix-list LEAK-VRF-RED seq 20 permit 192.168.30.0/24
+route-map LEAK-VRF-RED-MAP permit 10
+   match ip address prefix-list LEAK-VRF-RED
+exit
+
+ip prefix-list LEAK-VRF-GREEN seq 10 permit 192.168.20.0/24
+ip prefix-list LEAK-VRF-GREEN seq 20 permit 192.168.40.0/24
+route-map LEAK-VRF-GREEN-MAP permit 10
+   match ip address prefix-list LEAK-VRF-GREEN
+exit
+
 router bgp 4200020001
   router-id 10.3.0.1
   neighbor LEAF peer group
   neighbor LEAF bfd
   neighbor LEAF send-community extended
-  neighbor 10.4.3.0 remote-as 4200010003
+
   redistribute connected
+  redistribute bgp leaked
   timers bgp 3 9
   bgp log-neighbor-changes
   maximum-paths 128
+
+  vrf Vrf-red
+    rd 10.3.0.1:10000
+    neighbor 10.4.3.0 remote-as 4200010003
+    neighbor 10.4.3.0 peer group LEAF
+    redistribute connected
+    address-family ipv4
+      neighbor 10.4.3.0 activate
+    exit
+    redistribute bgp leaked
+  exit
+  vrf Vrf-green
+    rd 10.3.0.1:20000
+    neighbor 10.4.3.2 remote-as 4200010003
+    neighbor 10.4.3.2 peer group LEAF
+    redistribute connected
+    address-family ipv4
+      neighbor 10.4.3.2 activate
+    exit
+    redistribute bgp leaked
+  exit
+exit
+
+router general
+  vrf Vrf-red
+    leak routes source-vrf Vrf-green subscribe-policy LEAK-VRF-GREEN-MAP
+  exit
+  vrf Vrf-green
+    leak routes source-vrf Vrf-red subscribe-policy LEAK-VRF-RED-MAP
+  exit
 exit
 
 interface Ethernet1
-   description to-leaf-3
-   no switchport
-   ip address 10.4.3.1/31
-   bfd interval 100 min-rx 100 multiplier 3
+   switchport trunk native vlan 100
+   switchport trunk allowed vlan 100
+   switchport mode trunk
 exit
+interface Ethernet2
+   switchport trunk native vlan 200
+   switchport trunk allowed vlan 200
+   switchport mode trunk
+exit
+
+interface Vlan 100
+   description to-leaf-3-Vrf-red
+   vrf Vrf-red
+   ip address 10.4.3.1/31
+exit
+interface Vlan 200
+   description to-leaf-3-Vrf-green
+   vrf Vrf-green
+   ip address 10.4.3.3/31
+exit
+
 interface Loopback1
    ip address 10.3.0.1/32
 exit
@@ -515,201 +659,15 @@ interface loopback 1
 exit
 ```
 
-### Проверка EVPN маршрутов
+### Проверка маршрутов
 
 - #### leaf-1
 
 ~~~
-leaf-1#show bgp evpn
-BGP routing table information for VRF default
-Router identifier 10.2.0.1, local AS number 4200010001
-Route status codes: s - suppressed, * - valid, > - active, # - not installed, E - ECMP head, e - ECMP
-                    S - Stale, c - Contributing to ECMP, b - backup
-                    % - Pending BGP convergence
-Origin codes: i - IGP, e - EGP, ? - incomplete
-AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Link Local Nexthop
+leaf-1#
+leaf-1#show ip route vrf Vrf-red
 
-          Network                Next Hop              Metric  LocPref Weight  Path
- * >     RD: 10.2.0.1:10 mac-ip 5014.0006.0000
-                                -                     -       -       0       i
- * >     RD: 10.2.0.1:10 mac-ip 5014.0006.0000 192.168.10.1
-                                -                     -       -       0       i
- * >     RD: 10.2.0.1:10 mac-ip 5014.0007.0000
-                                -                     -       -       0       i
- * >     RD: 10.2.0.1:10 mac-ip 5014.0007.0000 192.168.10.2
-                                -                     -       -       0       i
- * >Ec   RD: 10.2.0.2:20 mac-ip 5014.0008.0000
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- *  ec   RD: 10.2.0.2:20 mac-ip 5014.0008.0000
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
- * >Ec   RD: 10.2.0.2:20 mac-ip 5014.0008.0000 192.168.20.1
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- *  ec   RD: 10.2.0.2:20 mac-ip 5014.0008.0000 192.168.20.1
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
- * >Ec   RD: 10.2.0.2:20 mac-ip 5014.0009.0000
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
- *  ec   RD: 10.2.0.2:20 mac-ip 5014.0009.0000
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- * >Ec   RD: 10.2.0.2:20 mac-ip 5014.0009.0000 192.168.20.2
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
- *  ec   RD: 10.2.0.2:20 mac-ip 5014.0009.0000 192.168.20.2
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- * >     RD: 10.2.0.1:10 imet 10.2.0.1
-                                -                     -       -       0       i
- * >Ec   RD: 10.2.0.2:20 imet 10.2.0.2
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- *  ec   RD: 10.2.0.2:20 imet 10.2.0.2
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
- * >Ec   RD: 10.2.0.3:1000 ip-prefix 10.3.0.1/32
-                                10.2.0.3              -       100     0       4200000001 4200010003 4200020001 i
- *  ec   RD: 10.2.0.3:1000 ip-prefix 10.3.0.1/32
-                                10.2.0.3              -       100     0       4200000002 4200010003 4200020001 i
- * >Ec   RD: 10.2.0.3:1000 ip-prefix 10.4.3.0/31
-                                10.2.0.3              -       100     0       4200000001 4200010003 i
- *  ec   RD: 10.2.0.3:1000 ip-prefix 10.4.3.0/31
-                                10.2.0.3              -       100     0       4200000002 4200010003 i
- * >     RD: 10.2.0.1:1000 ip-prefix 192.168.10.0/24
-                                -                     -       -       0       i
- * >Ec   RD: 10.2.0.2:1000 ip-prefix 192.168.20.0/24
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- *  ec   RD: 10.2.0.2:1000 ip-prefix 192.168.20.0/24
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
-~~~
-
-- #### leaf-2
-
-~~~
-leaf-2#show bgp evpn
-BGP routing table information for VRF default
-Router identifier 10.2.0.2, local AS number 4200010002
-Route status codes: s - suppressed, * - valid, > - active, # - not installed, E - ECMP head, e - ECMP
-                    S - Stale, c - Contributing to ECMP, b - backup
-                    % - Pending BGP convergence
-Origin codes: i - IGP, e - EGP, ? - incomplete
-AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Link Local Nexthop
-
-          Network                Next Hop              Metric  LocPref Weight  Path
- * >Ec   RD: 10.2.0.1:10 mac-ip 5014.0006.0000
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- *  ec   RD: 10.2.0.1:10 mac-ip 5014.0006.0000
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- * >Ec   RD: 10.2.0.1:10 mac-ip 5014.0006.0000 192.168.10.1
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- *  ec   RD: 10.2.0.1:10 mac-ip 5014.0006.0000 192.168.10.1
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- * >Ec   RD: 10.2.0.1:10 mac-ip 5014.0007.0000
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- *  ec   RD: 10.2.0.1:10 mac-ip 5014.0007.0000
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- * >Ec   RD: 10.2.0.1:10 mac-ip 5014.0007.0000 192.168.10.2
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- *  ec   RD: 10.2.0.1:10 mac-ip 5014.0007.0000 192.168.10.2
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- * >     RD: 10.2.0.2:20 mac-ip 5014.0008.0000
-                                -                     -       -       0       i
- * >     RD: 10.2.0.2:20 mac-ip 5014.0008.0000 192.168.20.1
-                                -                     -       -       0       i
- * >     RD: 10.2.0.2:20 mac-ip 5014.0009.0000
-                                -                     -       -       0       i
- * >     RD: 10.2.0.2:20 mac-ip 5014.0009.0000 192.168.20.2
-                                -                     -       -       0       i
- * >Ec   RD: 10.2.0.1:10 imet 10.2.0.1
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- *  ec   RD: 10.2.0.1:10 imet 10.2.0.1
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- * >     RD: 10.2.0.2:20 imet 10.2.0.2
-                                -                     -       -       0       i
- * >Ec   RD: 10.2.0.3:1000 ip-prefix 10.3.0.1/32
-                                10.2.0.3              -       100     0       4200000002 4200010003 4200020001 i
- *  ec   RD: 10.2.0.3:1000 ip-prefix 10.3.0.1/32
-                                10.2.0.3              -       100     0       4200000001 4200010003 4200020001 i
- * >Ec   RD: 10.2.0.3:1000 ip-prefix 10.4.3.0/31
-                                10.2.0.3              -       100     0       4200000002 4200010003 i
- *  ec   RD: 10.2.0.3:1000 ip-prefix 10.4.3.0/31
-                                10.2.0.3              -       100     0       4200000001 4200010003 i
- * >Ec   RD: 10.2.0.1:1000 ip-prefix 192.168.10.0/24
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- *  ec   RD: 10.2.0.1:1000 ip-prefix 192.168.10.0/24
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- * >     RD: 10.2.0.2:1000 ip-prefix 192.168.20.0/24
-                                -                     -       -       0       i
-~~~
-
-- #### leaf-3
-
-~~~
-leaf-3#show bgp evpn
-BGP routing table information for VRF default
-Router identifier 10.2.0.3, local AS number 4200010003
-Route status codes: s - suppressed, * - valid, > - active, # - not installed, E - ECMP head, e - ECMP
-                    S - Stale, c - Contributing to ECMP, b - backup
-                    % - Pending BGP convergence
-Origin codes: i - IGP, e - EGP, ? - incomplete
-AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Link Local Nexthop
-
-          Network                Next Hop              Metric  LocPref Weight  Path
- * >Ec   RD: 10.2.0.1:10 mac-ip 5014.0006.0000
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- *  ec   RD: 10.2.0.1:10 mac-ip 5014.0006.0000
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- * >Ec   RD: 10.2.0.1:10 mac-ip 5014.0006.0000 192.168.10.1
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- *  ec   RD: 10.2.0.1:10 mac-ip 5014.0006.0000 192.168.10.1
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- * >Ec   RD: 10.2.0.1:10 mac-ip 5014.0007.0000
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- *  ec   RD: 10.2.0.1:10 mac-ip 5014.0007.0000
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- * >Ec   RD: 10.2.0.1:10 mac-ip 5014.0007.0000 192.168.10.2
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- *  ec   RD: 10.2.0.1:10 mac-ip 5014.0007.0000 192.168.10.2
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- * >Ec   RD: 10.2.0.2:20 mac-ip 5014.0008.0000
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- *  ec   RD: 10.2.0.2:20 mac-ip 5014.0008.0000
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
- * >Ec   RD: 10.2.0.2:20 mac-ip 5014.0008.0000 192.168.20.1
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- *  ec   RD: 10.2.0.2:20 mac-ip 5014.0008.0000 192.168.20.1
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
- * >Ec   RD: 10.2.0.2:20 mac-ip 5014.0009.0000
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
- *  ec   RD: 10.2.0.2:20 mac-ip 5014.0009.0000
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- * >Ec   RD: 10.2.0.2:20 mac-ip 5014.0009.0000 192.168.20.2
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
- *  ec   RD: 10.2.0.2:20 mac-ip 5014.0009.0000 192.168.20.2
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- * >Ec   RD: 10.2.0.1:10 imet 10.2.0.1
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- *  ec   RD: 10.2.0.1:10 imet 10.2.0.1
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- * >Ec   RD: 10.2.0.2:20 imet 10.2.0.2
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- *  ec   RD: 10.2.0.2:20 imet 10.2.0.2
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
- * >     RD: 10.2.0.3:1000 ip-prefix 10.3.0.1/32
-                                -                     -       100     0       4200020001 i
- * >     RD: 10.2.0.3:1000 ip-prefix 10.4.3.0/31
-                                -                     -       -       0       i
- *       RD: 10.2.0.3:1000 ip-prefix 10.4.3.0/31
-                                -                     -       100     0       4200020001 i
- * >Ec   RD: 10.2.0.1:1000 ip-prefix 192.168.10.0/24
-                                10.2.0.1              -       100     0       4200000002 4200010001 i
- *  ec   RD: 10.2.0.1:1000 ip-prefix 192.168.10.0/24
-                                10.2.0.1              -       100     0       4200000001 4200010001 i
- * >Ec   RD: 10.2.0.2:1000 ip-prefix 192.168.20.0/24
-                                10.2.0.2              -       100     0       4200000002 4200010002 i
- *  ec   RD: 10.2.0.2:1000 ip-prefix 192.168.20.0/24
-                                10.2.0.2              -       100     0       4200000001 4200010002 i
-~~~
-
-- #### external-router
-
-~~~
-external-router#show ip route
-
-VRF: default
+VRF: Vrf-red
 Codes: C - connected, S - static, K - kernel,
        O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
        E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
@@ -722,10 +680,154 @@ Codes: C - connected, S - static, K - kernel,
 
 Gateway of last resort is not set
 
- C        10.3.0.1/32 is directly connected, Loopback1
- C        10.4.3.0/31 is directly connected, Ethernet1
- B E      192.168.10.0/24 [200/0] via 10.4.3.0, Ethernet1
- B E      192.168.20.0/24 [200/0] via 10.4.3.0, Ethernet1
+ B E      10.4.3.0/31 [200/0] via VTEP 10.2.0.3 VNI 10000 router-mac 50:14:00:39:d9:0a
+ C        192.168.10.0/24 is directly connected, Vlan10
+ B E      192.168.20.0/24 [200/0] via VTEP 10.2.0.3 VNI 10000 router-mac 50:14:00:39:d9:0a
+ B E      192.168.30.0/24 [200/0] via VTEP 10.2.0.2 VNI 10000 router-mac 50:14:00:94:4e:50
+ B E      192.168.40.0/24 [200/0] via VTEP 10.2.0.3 VNI 10000 router-mac 50:14:00:39:d9:0a
+
+leaf-1#show ip route vrf Vrf-green
+
+VRF: Vrf-green
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ B E      10.4.3.2/31 [200/0] via VTEP 10.2.0.3 VNI 20000 router-mac 50:14:00:39:d9:0a
+ B E      192.168.10.0/24 [200/0] via VTEP 10.2.0.3 VNI 20000 router-mac 50:14:00:39:d9:0a
+ C        192.168.20.0/24 is directly connected, Vlan20
+ B E      192.168.30.0/24 [200/0] via VTEP 10.2.0.3 VNI 20000 router-mac 50:14:00:39:d9:0a
+ B E      192.168.40.0/24 [200/0] via VTEP 10.2.0.2 VNI 20000 router-mac 50:14:00:94:4e:50
+~~~
+
+- #### leaf-2
+
+~~~
+leaf-2#show ip route vrf Vrf-red
+
+VRF: Vrf-red
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ B E      10.4.3.0/31 [200/0] via VTEP 10.2.0.3 VNI 10000 router-mac 50:14:00:39:d9:0a
+ B E      192.168.10.1/32 [200/0] via VTEP 10.2.0.1 VNI 10000 router-mac 50:14:00:6c:75:08
+ B E      192.168.10.0/24 [200/0] via VTEP 10.2.0.1 VNI 10000 router-mac 50:14:00:6c:75:08
+ B E      192.168.20.0/24 [200/0] via VTEP 10.2.0.3 VNI 10000 router-mac 50:14:00:39:d9:0a
+ C        192.168.30.0/24 is directly connected, Vlan30
+ B E      192.168.40.0/24 [200/0] via VTEP 10.2.0.3 VNI 10000 router-mac 50:14:00:39:d9:0a
+
+~~~
+
+- #### leaf-3
+
+~~~
+leaf-3#show ip route vrf Vrf-red
+
+VRF: Vrf-red
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ C        10.4.3.0/31 is directly connected, Vlan100
+ B E      192.168.10.1/32 [200/0] via VTEP 10.2.0.1 VNI 10000 router-mac 50:14:00:6c:75:08
+ B E      192.168.10.0/24 [200/0] via VTEP 10.2.0.1 VNI 10000 router-mac 50:14:00:6c:75:08
+ B E      192.168.20.0/24 [200/0] via 10.4.3.1, Vlan100
+ B E      192.168.30.0/24 [200/0] via VTEP 10.2.0.2 VNI 10000 router-mac 50:14:00:94:4e:50
+ B E      192.168.40.0/24 [200/0] via 10.4.3.1, Vlan100
+
+leaf-3#show ip route vrf Vrf-green
+
+VRF: Vrf-green
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ C        10.4.3.2/31 is directly connected, Vlan200
+ B E      192.168.10.0/24 [200/0] via 10.4.3.3, Vlan200
+ B E      192.168.20.1/32 [200/0] via VTEP 10.2.0.1 VNI 20000 router-mac 50:14:00:6c:75:08
+ B E      192.168.20.2/32 [200/0] via VTEP 10.2.0.1 VNI 20000 router-mac 50:14:00:6c:75:08
+ B E      192.168.20.0/24 [200/0] via VTEP 10.2.0.1 VNI 20000 router-mac 50:14:00:6c:75:08
+ B E      192.168.30.0/24 [200/0] via 10.4.3.3, Vlan200
+ B E      192.168.40.0/24 [200/0] via VTEP 10.2.0.2 VNI 20000 router-mac 50:14:00:94:4e:50
+~~~
+
+- #### external-router
+
+~~~
+external-router#show ip route vrf Vrf-red
+
+VRF: Vrf-red
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ C        10.4.3.0/31 is directly connected, Vlan100
+ B E      192.168.10.0/24 [200/0] via 10.4.3.0, Vlan100
+ B E L    192.168.20.0/24 [200/0] (source VRF Vrf-green) via 10.4.3.2, Vlan200 (egress VRF Vrf-green)
+ B E      192.168.30.0/24 [200/0] via 10.4.3.0, Vlan100
+ B E L    192.168.40.0/24 [200/0] (source VRF Vrf-green) via 10.4.3.2, Vlan200 (egress VRF Vrf-green)
+
+external-router#show ip route vrf Vrf-green
+
+VRF: Vrf-green
+Codes: C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - BGP, B I - iBGP, B E - eBGP,
+       R - RIP, I L1 - IS-IS level 1, I L2 - IS-IS level 2,
+       O3 - OSPFv3, A B - BGP Aggregate, A O - OSPF Summary,
+       NG - Nexthop Group Static Route, V - VXLAN Control Service,
+       DH - DHCP client installed default route, M - Martian,
+       DP - Dynamic Policy Route, L - VRF Leaked
+
+Gateway of last resort is not set
+
+ C        10.4.3.2/31 is directly connected, Vlan200
+ B E L    192.168.10.0/24 [200/0] (source VRF Vrf-red) via 10.4.3.0, Vlan100 (egress VRF Vrf-red)
+ B E      192.168.20.0/24 [200/0] via 10.4.3.2, Vlan200
+ B E L    192.168.30.0/24 [200/0] (source VRF Vrf-red) via 10.4.3.0, Vlan100 (egress VRF Vrf-red)
+ B E      192.168.40.0/24 [200/0] via 10.4.3.2, Vlan200
 ~~~
 
 ### Проверка доступности
@@ -733,100 +835,84 @@ Gateway of last resort is not set
 - #### client-1
 
 ~~~
-vyos@client-1:~$ ping 192.168.10.2
-PING 192.168.10.2 (192.168.10.2) 56(84) bytes of data.
-64 bytes from 192.168.10.2: icmp_seq=1 ttl=64 time=26.1 ms
-64 bytes from 192.168.10.2: icmp_seq=2 ttl=64 time=7.13 ms
-64 bytes from 192.168.10.2: icmp_seq=3 ttl=64 time=5.86 ms
-64 bytes from 192.168.10.2: icmp_seq=4 ttl=64 time=4.81 ms
-64 bytes from 192.168.10.2: icmp_seq=5 ttl=64 time=5.28 ms
-^C
---- 192.168.10.2 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4007ms
-rtt min/avg/max/mdev = 4.806/9.845/26.146/8.187 ms
 vyos@client-1:~$ ping 192.168.20.1
 PING 192.168.20.1 (192.168.20.1) 56(84) bytes of data.
-64 bytes from 192.168.20.1: icmp_seq=1 ttl=62 time=222 ms
-64 bytes from 192.168.20.1: icmp_seq=2 ttl=62 time=22.2 ms
-64 bytes from 192.168.20.1: icmp_seq=3 ttl=62 time=22.0 ms
-64 bytes from 192.168.20.1: icmp_seq=4 ttl=62 time=31.8 ms
-64 bytes from 192.168.20.1: icmp_seq=5 ttl=62 time=19.2 ms
+64 bytes from 192.168.20.1: icmp_seq=1 ttl=59 time=90.2 ms
+64 bytes from 192.168.20.1: icmp_seq=2 ttl=59 time=49.4 ms
+64 bytes from 192.168.20.1: icmp_seq=3 ttl=59 time=49.2 ms
+64 bytes from 192.168.20.1: icmp_seq=4 ttl=59 time=48.0 ms
+64 bytes from 192.168.20.1: icmp_seq=5 ttl=59 time=45.9 ms
 ^C
 --- 192.168.20.1 ping statistics ---
 5 packets transmitted, 5 received, 0% packet loss, time 4006ms
-rtt min/avg/max/mdev = 19.219/63.387/221.772/79.307 ms
-vyos@client-1:~$ ping 192.168.20.2
-PING 192.168.20.2 (192.168.20.2) 56(84) bytes of data.
-64 bytes from 192.168.20.2: icmp_seq=1 ttl=62 time=58.0 ms
-64 bytes from 192.168.20.2: icmp_seq=2 ttl=62 time=20.2 ms
-64 bytes from 192.168.20.2: icmp_seq=3 ttl=62 time=21.7 ms
-64 bytes from 192.168.20.2: icmp_seq=4 ttl=62 time=21.6 ms
-64 bytes from 192.168.20.2: icmp_seq=5 ttl=62 time=21.6 ms
+rtt min/avg/max/mdev = 45.894/56.548/90.241/16.892 ms
+vyos@client-1:~$ ping 192.168.30.1
+PING 192.168.30.1 (192.168.30.1) 56(84) bytes of data.
+64 bytes from 192.168.30.1: icmp_seq=1 ttl=62 time=194 ms
+64 bytes from 192.168.30.1: icmp_seq=2 ttl=62 time=73.2 ms
+64 bytes from 192.168.30.1: icmp_seq=3 ttl=62 time=28.6 ms
+64 bytes from 192.168.30.1: icmp_seq=4 ttl=62 time=20.3 ms
+64 bytes from 192.168.30.1: icmp_seq=5 ttl=62 time=77.4 ms
 ^C
---- 192.168.20.2 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4006ms
-rtt min/avg/max/mdev = 20.217/28.633/57.999/14.693 ms
-vyos@client-1:~$ ping 10.3.0.1
-PING 10.3.0.1 (10.3.0.1) 56(84) bytes of data.
-64 bytes from 10.3.0.1: icmp_seq=1 ttl=62 time=29.3 ms
-64 bytes from 10.3.0.1: icmp_seq=2 ttl=62 time=21.9 ms
-64 bytes from 10.3.0.1: icmp_seq=3 ttl=62 time=22.3 ms
-64 bytes from 10.3.0.1: icmp_seq=4 ttl=62 time=19.3 ms
-64 bytes from 10.3.0.1: icmp_seq=5 ttl=62 time=23.2 ms
+--- 192.168.30.1 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4005ms
+rtt min/avg/max/mdev = 20.333/78.756/194.278/62.134 ms
+vyos@client-1:~$ ping 192.168.40.1
+PING 192.168.40.1 (192.168.40.1) 56(84) bytes of data.
+64 bytes from 192.168.40.1: icmp_seq=1 ttl=59 time=91.7 ms
+64 bytes from 192.168.40.1: icmp_seq=2 ttl=59 time=55.8 ms
+64 bytes from 192.168.40.1: icmp_seq=3 ttl=59 time=46.6 ms
+64 bytes from 192.168.40.1: icmp_seq=4 ttl=59 time=44.5 ms
+64 bytes from 192.168.40.1: icmp_seq=5 ttl=59 time=53.3 ms
 ^C
---- 10.3.0.1 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4006ms
-rtt min/avg/max/mdev = 19.325/23.205/29.258/3.291 ms
-
+--- 192.168.40.1 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4007ms
+rtt min/avg/max/mdev = 44.476/58.373/91.700/17.176 ms
 ~~~
 
 - #### client-2
 
 ~~~
-vyos@client-2:~$ ping 192.168.10.1
+vyos@client-2# ping 192.168.10.1
 PING 192.168.10.1 (192.168.10.1) 56(84) bytes of data.
-64 bytes from 192.168.10.1: icmp_seq=1 ttl=64 time=5.74 ms
-64 bytes from 192.168.10.1: icmp_seq=2 ttl=64 time=5.17 ms
-64 bytes from 192.168.10.1: icmp_seq=3 ttl=64 time=4.87 ms
-64 bytes from 192.168.10.1: icmp_seq=4 ttl=64 time=6.35 ms
-64 bytes from 192.168.10.1: icmp_seq=5 ttl=64 time=5.96 ms
+64 bytes from 192.168.10.1: icmp_seq=1 ttl=59 time=54.7 ms
+64 bytes from 192.168.10.1: icmp_seq=2 ttl=59 time=45.2 ms
+64 bytes from 192.168.10.1: icmp_seq=3 ttl=59 time=42.3 ms
+64 bytes from 192.168.10.1: icmp_seq=4 ttl=59 time=58.9 ms
+64 bytes from 192.168.10.1: icmp_seq=5 ttl=59 time=45.1 ms
 ^C
 --- 192.168.10.1 ping statistics ---
 5 packets transmitted, 5 received, 0% packet loss, time 4006ms
-rtt min/avg/max/mdev = 4.870/5.616/6.348/0.533 ms
-vyos@client-2:~$ ping 192.168.20.1
-PING 192.168.20.1 (192.168.20.1) 56(84) bytes of data.
-64 bytes from 192.168.20.1: icmp_seq=1 ttl=62 time=21.0 ms
-64 bytes from 192.168.20.1: icmp_seq=2 ttl=62 time=20.5 ms
-64 bytes from 192.168.20.1: icmp_seq=3 ttl=62 time=39.4 ms
-64 bytes from 192.168.20.1: icmp_seq=4 ttl=62 time=21.9 ms
-64 bytes from 192.168.20.1: icmp_seq=5 ttl=62 time=32.6 ms
-^C
+rtt min/avg/max/mdev = 42.308/49.231/58.909/6.407 ms
+[edit]
 --- 192.168.20.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 0.036/0.113/0.260/0.103 ms
+[edit]
+vyos@client-2# ping 192.168.30.1
+PING 192.168.30.1 (192.168.30.1) 56(84) bytes of data.
+64 bytes from 192.168.30.1: icmp_seq=1 ttl=59 time=84.7 ms
+64 bytes from 192.168.30.1: icmp_seq=2 ttl=59 time=80.6 ms
+64 bytes from 192.168.30.1: icmp_seq=3 ttl=59 time=50.7 ms
+64 bytes from 192.168.30.1: icmp_seq=4 ttl=59 time=54.8 ms
+64 bytes from 192.168.30.1: icmp_seq=5 ttl=59 time=95.0 ms
+^C
+--- 192.168.30.1 ping statistics ---
 5 packets transmitted, 5 received, 0% packet loss, time 4006ms
-rtt min/avg/max/mdev = 20.474/27.075/39.440/7.631 ms
-vyos@client-2:~$ ping 192.168.20.2
-PING 192.168.20.2 (192.168.20.2) 56(84) bytes of data.
-64 bytes from 192.168.20.2: icmp_seq=1 ttl=62 time=28.3 ms
-64 bytes from 192.168.20.2: icmp_seq=2 ttl=62 time=22.0 ms
-64 bytes from 192.168.20.2: icmp_seq=3 ttl=62 time=18.9 ms
-64 bytes from 192.168.20.2: icmp_seq=4 ttl=62 time=20.2 ms
-64 bytes from 192.168.20.2: icmp_seq=5 ttl=62 time=20.4 ms
+rtt min/avg/max/mdev = 50.703/73.155/94.966/17.364 ms
+[edit]
+vyos@client-2# ping 192.168.40.1
+PING 192.168.40.1 (192.168.40.1) 56(84) bytes of data.
+64 bytes from 192.168.40.1: icmp_seq=1 ttl=62 time=19.3 ms
+64 bytes from 192.168.40.1: icmp_seq=2 ttl=62 time=19.4 ms
+64 bytes from 192.168.40.1: icmp_seq=3 ttl=62 time=24.4 ms
+64 bytes from 192.168.40.1: icmp_seq=4 ttl=62 time=121 ms
+64 bytes from 192.168.40.1: icmp_seq=5 ttl=62 time=20.1 ms
 ^C
---- 192.168.20.2 ping statistics ---
+--- 192.168.40.1 ping statistics ---
 5 packets transmitted, 5 received, 0% packet loss, time 4007ms
-rtt min/avg/max/mdev = 18.869/21.928/28.289/3.328 ms
-vyos@client-2:~$ ping 10.3.0.1
-PING 10.3.0.1 (10.3.0.1) 56(84) bytes of data.
-64 bytes from 10.3.0.1: icmp_seq=1 ttl=62 time=69.1 ms
-64 bytes from 10.3.0.1: icmp_seq=2 ttl=62 time=21.6 ms
-64 bytes from 10.3.0.1: icmp_seq=3 ttl=62 time=19.1 ms
-64 bytes from 10.3.0.1: icmp_seq=4 ttl=62 time=36.4 ms
-64 bytes from 10.3.0.1: icmp_seq=5 ttl=62 time=20.5 ms
-^C
---- 10.3.0.1 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4002ms
-rtt min/avg/max/mdev = 19.098/33.332/69.078/18.931 ms
+rtt min/avg/max/mdev = 19.349/40.828/120.883/40.071 ms
+[edit]
 ~~~
 
 - #### client-3
@@ -834,48 +920,36 @@ rtt min/avg/max/mdev = 19.098/33.332/69.078/18.931 ms
 ~~~
 vyos@client-3:~$ ping 192.168.10.1
 PING 192.168.10.1 (192.168.10.1) 56(84) bytes of data.
-64 bytes from 192.168.10.1: icmp_seq=1 ttl=62 time=39.1 ms
-64 bytes from 192.168.10.1: icmp_seq=2 ttl=62 time=67.9 ms
-64 bytes from 192.168.10.1: icmp_seq=3 ttl=62 time=19.3 ms
-64 bytes from 192.168.10.1: icmp_seq=4 ttl=62 time=18.1 ms
-64 bytes from 192.168.10.1: icmp_seq=5 ttl=62 time=75.2 ms
+64 bytes from 192.168.10.1: icmp_seq=1 ttl=62 time=39.8 ms
+64 bytes from 192.168.10.1: icmp_seq=2 ttl=62 time=28.6 ms
+64 bytes from 192.168.10.1: icmp_seq=3 ttl=62 time=23.1 ms
+64 bytes from 192.168.10.1: icmp_seq=4 ttl=62 time=20.9 ms
+64 bytes from 192.168.10.1: icmp_seq=5 ttl=62 time=21.6 ms
 ^C
 --- 192.168.10.1 ping statistics ---
 5 packets transmitted, 5 received, 0% packet loss, time 4006ms
-rtt min/avg/max/mdev = 18.081/43.905/75.191/23.881 ms
-vyos@client-3:~$ ping 192.168.10.2
-PING 192.168.10.2 (192.168.10.2) 56(84) bytes of data.
-64 bytes from 192.168.10.2: icmp_seq=1 ttl=62 time=29.2 ms
-64 bytes from 192.168.10.2: icmp_seq=2 ttl=62 time=19.6 ms
-64 bytes from 192.168.10.2: icmp_seq=3 ttl=62 time=32.4 ms
-64 bytes from 192.168.10.2: icmp_seq=4 ttl=62 time=18.6 ms
-64 bytes from 192.168.10.2: icmp_seq=5 ttl=62 time=20.1 ms
+rtt min/avg/max/mdev = 20.940/26.790/39.757/7.015 ms
+vyos@client-3:~$ ping 192.168.20.1
+PING 192.168.20.1 (192.168.20.1) 56(84) bytes of data.
+64 bytes from 192.168.20.1: icmp_seq=1 ttl=59 time=62.3 ms
+64 bytes from 192.168.20.1: icmp_seq=2 ttl=59 time=63.5 ms
+64 bytes from 192.168.20.1: icmp_seq=3 ttl=59 time=46.2 ms
+64 bytes from 192.168.20.1: icmp_seq=4 ttl=59 time=48.9 ms
+64 bytes from 192.168.20.1: icmp_seq=5 ttl=59 time=52.7 ms
 ^C
---- 192.168.10.2 ping statistics ---
+--- 192.168.20.1 ping statistics ---
 5 packets transmitted, 5 received, 0% packet loss, time 4007ms
-rtt min/avg/max/mdev = 18.637/23.996/32.414/5.681 ms
-vyos@client-3:~$ ping 192.168.20.2
-PING 192.168.20.2 (192.168.20.2) 56(84) bytes of data.
-64 bytes from 192.168.20.2: icmp_seq=1 ttl=64 time=6.27 ms
-64 bytes from 192.168.20.2: icmp_seq=2 ttl=64 time=4.79 ms
-64 bytes from 192.168.20.2: icmp_seq=3 ttl=64 time=4.92 ms
-64 bytes from 192.168.20.2: icmp_seq=4 ttl=64 time=6.22 ms
-64 bytes from 192.168.20.2: icmp_seq=5 ttl=64 time=5.10 ms
+rtt min/avg/max/mdev = 46.217/54.724/63.488/7.003 ms
+vyos@client-3:~$ ping 192.168.40.1
+PING 192.168.40.1 (192.168.40.1) 56(84) bytes of data.
+64 bytes from 192.168.40.1: icmp_seq=1 ttl=59 time=55.9 ms
+64 bytes from 192.168.40.1: icmp_seq=2 ttl=59 time=61.4 ms
+64 bytes from 192.168.40.1: icmp_seq=3 ttl=59 time=52.7 ms
+64 bytes from 192.168.40.1: icmp_seq=4 ttl=59 time=54.0 ms
 ^C
---- 192.168.20.2 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4006ms
-rtt min/avg/max/mdev = 4.790/5.458/6.265/0.647 ms
-vyos@client-3:~$ ping 10.3.0.1
-PING 10.3.0.1 (10.3.0.1) 56(84) bytes of data.
-64 bytes from 10.3.0.1: icmp_seq=1 ttl=62 time=41.1 ms
-64 bytes from 10.3.0.1: icmp_seq=2 ttl=62 time=20.8 ms
-64 bytes from 10.3.0.1: icmp_seq=3 ttl=62 time=24.8 ms
-64 bytes from 10.3.0.1: icmp_seq=4 ttl=62 time=27.0 ms
-64 bytes from 10.3.0.1: icmp_seq=5 ttl=62 time=19.0 ms
-^C
---- 10.3.0.1 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4005ms
-rtt min/avg/max/mdev = 18.997/26.531/41.123/7.816 ms
+--- 192.168.40.1 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+rtt min/avg/max/mdev = 52.710/56.012/61.350/3.288 ms
 ~~~
 
 - #### client-4
@@ -883,46 +957,35 @@ rtt min/avg/max/mdev = 18.997/26.531/41.123/7.816 ms
 ~~~
 vyos@client-4:~$ ping 192.168.10.1
 PING 192.168.10.1 (192.168.10.1) 56(84) bytes of data.
-64 bytes from 192.168.10.1: icmp_seq=1 ttl=62 time=38.4 ms
-64 bytes from 192.168.10.1: icmp_seq=2 ttl=62 time=20.1 ms
-64 bytes from 192.168.10.1: icmp_seq=3 ttl=62 time=22.8 ms
-64 bytes from 192.168.10.1: icmp_seq=4 ttl=62 time=17.6 ms
-64 bytes from 192.168.10.1: icmp_seq=5 ttl=62 time=23.1 ms
+64 bytes from 192.168.10.1: icmp_seq=1 ttl=59 time=77.2 ms
+64 bytes from 192.168.10.1: icmp_seq=2 ttl=59 time=53.1 ms
+64 bytes from 192.168.10.1: icmp_seq=3 ttl=59 time=48.0 ms
+64 bytes from 192.168.10.1: icmp_seq=4 ttl=59 time=52.3 ms
+64 bytes from 192.168.10.1: icmp_seq=5 ttl=59 time=59.9 ms
 ^C
 --- 192.168.10.1 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4007ms
-rtt min/avg/max/mdev = 17.558/24.380/38.356/7.270 ms
-vyos@client-4:~$ ping 192.168.10.2
-PING 192.168.10.2 (192.168.10.2) 56(84) bytes of data.
-64 bytes from 192.168.10.2: icmp_seq=1 ttl=62 time=26.2 ms
-64 bytes from 192.168.10.2: icmp_seq=2 ttl=62 time=20.7 ms
-64 bytes from 192.168.10.2: icmp_seq=3 ttl=62 time=68.2 ms
-64 bytes from 192.168.10.2: icmp_seq=4 ttl=62 time=19.7 ms
-64 bytes from 192.168.10.2: icmp_seq=5 ttl=62 time=29.4 ms
-^C
---- 192.168.10.2 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4007ms
-rtt min/avg/max/mdev = 19.723/32.852/68.233/18.046 ms
+5 packets transmitted, 5 received, 0% packet loss, time 4006ms
+rtt min/avg/max/mdev = 47.975/58.088/77.202/10.288 ms
 vyos@client-4:~$ ping 192.168.20.1
 PING 192.168.20.1 (192.168.20.1) 56(84) bytes of data.
-64 bytes from 192.168.20.1: icmp_seq=1 ttl=64 time=5.15 ms
-64 bytes from 192.168.20.1: icmp_seq=2 ttl=64 time=5.24 ms
-64 bytes from 192.168.20.1: icmp_seq=3 ttl=64 time=4.87 ms
-64 bytes from 192.168.20.1: icmp_seq=4 ttl=64 time=8.27 ms
-64 bytes from 192.168.20.1: icmp_seq=5 ttl=64 time=4.99 ms
+64 bytes from 192.168.20.1: icmp_seq=1 ttl=62 time=32.9 ms
+64 bytes from 192.168.20.1: icmp_seq=2 ttl=62 time=27.3 ms
+64 bytes from 192.168.20.1: icmp_seq=3 ttl=62 time=29.0 ms
+64 bytes from 192.168.20.1: icmp_seq=4 ttl=62 time=20.6 ms
+64 bytes from 192.168.20.1: icmp_seq=5 ttl=62 time=26.5 ms
 ^C
 --- 192.168.20.1 ping statistics ---
 5 packets transmitted, 5 received, 0% packet loss, time 4007ms
-rtt min/avg/max/mdev = 4.866/5.701/8.269/1.289 ms
-vyos@client-4:~$ ping 10.3.0.1
-PING 10.3.0.1 (10.3.0.1) 56(84) bytes of data.
-64 bytes from 10.3.0.1: icmp_seq=1 ttl=62 time=40.5 ms
-64 bytes from 10.3.0.1: icmp_seq=2 ttl=62 time=18.4 ms
-64 bytes from 10.3.0.1: icmp_seq=3 ttl=62 time=22.7 ms
-64 bytes from 10.3.0.1: icmp_seq=4 ttl=62 time=25.6 ms
-64 bytes from 10.3.0.1: icmp_seq=5 ttl=62 time=28.5 ms
+rtt min/avg/max/mdev = 20.623/27.264/32.880/3.982 ms
+vyos@client-4:~$ ping 192.168.30.1
+PING 192.168.30.1 (192.168.30.1) 56(84) bytes of data.
+64 bytes from 192.168.30.1: icmp_seq=1 ttl=59 time=75.0 ms
+64 bytes from 192.168.30.1: icmp_seq=2 ttl=59 time=50.8 ms
+64 bytes from 192.168.30.1: icmp_seq=3 ttl=59 time=49.8 ms
+64 bytes from 192.168.30.1: icmp_seq=4 ttl=59 time=57.9 ms
+64 bytes from 192.168.30.1: icmp_seq=5 ttl=59 time=45.4 ms
 ^C
---- 10.3.0.1 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4008ms
-rtt min/avg/max/mdev = 18.443/27.140/40.496/7.455 ms
+--- 192.168.30.1 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4005ms
+rtt min/avg/max/mdev = 45.354/55.769/75.039/10.436 ms
 ~~~
