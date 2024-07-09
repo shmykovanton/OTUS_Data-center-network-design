@@ -15,3 +15,7 @@
 [07 VxLAN. Multihoming](07_work)
 
 [08 VxLAN. Routing](08_work)
+
+# Курсовая работа
+
+[Проектирование сетевой фабрики на основне VXLAN EVPN](Course_work)
